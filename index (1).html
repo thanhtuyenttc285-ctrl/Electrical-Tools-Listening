@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interactive Listening – Six Hand Tools</title>
+<style>
+:root{--ink:#102a43;--blue:#174a7e;--pale:#eef5fb;--line:#cbd8e6;--ok:#e8f5e9;--bad:#fff3e0}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f7fa;color:var(--ink)}
+header{background:var(--blue);color:white;padding:22px 18px} header h1{margin:0;font-size:28px} header p{margin:7px 0 0}
+main{max-width:920px;margin:auto;padding:18px} .card{background:white;border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 2px 8px #0000000d}
+h2{margin-top:0} .audio{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:var(--blue);color:white}
+button.secondary{background:#526b82} button.light{background:#e7eef6;color:#173b60} button:disabled{opacity:.5;cursor:not-allowed}
+.q{padding:15px 0;border-top:1px solid #e5edf5} .q:first-child{border-top:0} label{display:block;margin:8px 0;padding:9px;border-radius:8px;background:#f7f9fc}
+.hint,.feedback{display:none;margin-top:9px;padding:10px;border-radius:8px} .hint{background:#fff8db} .feedback.ok{display:block;background:var(--ok)} .feedback.bad{display:block;background:var(--bad)}
+#score{font-size:20px;font-weight:700;margin:12px 0}
+.student-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.student-grid label{background:transparent;padding:0;margin:0;font-weight:700}
+.student-grid input{width:100%;margin-top:6px;padding:11px;border:1px solid var(--line);border-radius:8px;font-size:16px}
+#submitStatus{margin-top:10px;padding:10px;border-radius:8px;display:none}
+#submitStatus.ok{display:block;background:var(--ok)}
+#submitStatus.bad{display:block;background:var(--bad)}
+@media(max-width:700px){.student-grid{grid-template-columns:1fr}} #review,#transcript{display:none} .speaker{font-weight:700} mark{background:#fff0a6}
+.small{font-size:14px;color:#536779} .progress{height:10px;background:#e7edf3;border-radius:10px;overflow:hidden} #bar{height:100%;width:0;background:#174a7e}
+@media(max-width:600px){header h1{font-size:22px} main{padding:10px} button{width:100%}}
+</style>
+</head>
+<body>
+<header><h1>Interactive Listening</h1><p>Electrical Tools • Six Hand Tools • A2</p></header>
+<main>
+<section class="card" id="studentInfo"><h2>Student Information</h2>
+<div class="student-grid">
+<label>Student ID<input id="studentId" type="text" required></label>
+<label>Full Name<input id="fullName" type="text" required></label>
+<label>Class<input id="className" type="text" required></label>
+</div>
+<p class="small">Please enter your information before submitting your result.</p>
+</section>
+<section class="card"><h2>Before Listening</h2>
+<p><b>Prediction:</b> Minh and Hoa are working in an electrical workshop. What hand tools might they need to install a small box?</p>
+<p class="small">Think of 2–3 tools. Do not open the transcript yet.</p></section>
+
+<section class="card"><h2>Audio Player</h2>
+<p><b>Context:</b> Minh and Hoa are preparing and installing a small metal box on a practice panel.</p>
+<div class="audio">
+<button onclick="playAudio()">▶ Play</button>
+<button class="secondary" onclick="pauseAudio()">⏸ Pause</button>
+<button class="light" onclick="replayAudio()">↻ Replay</button>
+</div>
+<p class="small">The activity uses your browser's English text-to-speech voices. When available, a male voice is used for Minh and a female voice for Hoa.</p>
+</section>
+
+<section class="card"><h2>Listening Questions</h2>
+<p><b>First listening:</b> Answer Question 1 for gist. <b>Second listening:</b> Answer Questions 2–5 for specific information and details.</p>
+<div class="progress"><div id="bar"></div></div>
+<div id="questions"></div>
+<div id="score">Your score: 0/5</div>
+<button onclick="checkAll()">Check Answers</button>
+<button class="light" onclick="tryAgain()">Try Again</button>
+</section>
+<section class="card"><h2>Submit Result</h2>
+<p>After completing all five questions, submit your result.</p>
+<button id="submitBtn" onclick="submitResult()">Submit Result</button>
+<div id="submitStatus" aria-live="polite"></div>
+</section>
+
+<section class="card" id="review"><h2>Review Answers</h2><div id="reviewBody"></div>
+<button class="secondary" onclick="showTranscript()">Show Transcript</button>
+</section>
+
+<section class="card" id="transcript"><h2>Transcript</h2><div id="transcriptBody"></div></section>
+</main>
+<script>
+const DATA={"script": "Hoa: Minh, we need to install this small metal box on the practice panel. Are the tools ready?\nMinh: Almost. First, I need to tighten this screw on the cover.\nHoa: Here is the screwdriver.\nMinh: Thanks. Now this nut is loose, but I don't know its exact size.\nHoa: Use the adjustable wrench. You can change the jaw size.\nMinh: Good idea. There is also another nut of a known size.\nHoa: Then use the spanner. It has a fixed-size end.\nMinh: Okay. What about this hex-socket screw?\nHoa: Use the hexagon wrench for that.\nMinh: Right. Now we need to fasten these two parts together.\nHoa: We can use the bolt, nut and washer.\nMinh: Great. Finally, this small bracket needs a light tap to move into position.\nHoa: Here is the hammer. Use it carefully.\nMinh: Done. We used six hand tools and parts for different jobs.\nHoa: Yes. Choosing the right tool makes the work easier and safer.", "questions": [{"q": "1. What are Minh and Hoa doing?", "opts": ["Repairing a flashlight", "Installing a small metal box", "Pulling wire through conduit", "Measuring a cable"], "ans": 1, "hint": "Listen to Hoa’s first sentence. What are they working on?", "exp": "They are installing a small metal box on the practice panel."}, {"q": "2. Which tool does Minh use to tighten the screw on the cover?", "opts": ["Screwdriver", "Hammer", "Spanner", "Hexagon wrench"], "ans": 0, "hint": "Focus on the first tool Hoa gives Minh.", "exp": "Hoa gives Minh a screwdriver to tighten the screw."}, {"q": "3. Why does Hoa suggest the adjustable wrench?", "opts": ["The cabinet is dark.", "The nut size is not known.", "The screw has a hex socket.", "The wire is too long."], "ans": 1, "hint": "Listen for what Minh says about the nut before Hoa names the tool.", "exp": "Minh does not know the exact nut size, so Hoa suggests an adjustable wrench."}, {"q": "4. Which tool is used for the hex-socket screw?", "opts": ["Spanner", "Screwdriver", "Hexagon wrench", "Hammer"], "ans": 2, "hint": "Listen for the word “hex-socket”. Which tool name sounds related?", "exp": "Hoa tells Minh to use the hexagon wrench."}, {"q": "5. What do they use to fasten two parts together?", "opts": ["A bolt, nut and washer", "A hammer", "An adjustable wrench", "A screwdriver"], "ans": 0, "hint": "Listen after Minh says they need to fasten two parts together.", "exp": "They use a bolt, nut and washer to fasten the two parts together."}]};
+let attempts=Array(5).fill(0), completed=false, currentUtterances=[];
+const focusWords=["screwdriver","adjustable wrench","spanner","hexagon wrench","bolt, nut and washer","hammer"];
+
+function render(){
+ const box=document.getElementById('questions'); box.innerHTML='';
+ DATA.questions.forEach((x,i)=>{
+   let opts=x.opts.map((o,j)=>`<label><input type="radio" name="q${i}" value="${j}"> ${o}</label>`).join('');
+   box.innerHTML+=`<div class="q"><h3>${x.q}</h3>${opts}
+   <button class="light" onclick="hint(${i})">Hint</button>
+   <button class="secondary" onclick="checkOne(${i})">Check Answer</button>
+   <div class="hint" id="h${i}">${x.hint} <b>Listen again.</b></div>
+   <div class="feedback" id="f${i}"></div></div>`;
+ });
+}
+function hint(i){document.getElementById('h'+i).style.display='block'}
+function selected(i){let e=document.querySelector(`input[name=q${i}]:checked`);return e?+e.value:null}
+function checkOne(i){
+ let s=selected(i), f=document.getElementById('f'+i); if(s===null){f.className='feedback bad';f.textContent='Choose an answer first.';return}
+ attempts[i]++;
+ if(s===DATA.questions[i].ans){f.className='feedback ok';f.innerHTML='<b>Correct!</b> '+DATA.questions[i].exp}
+ else{f.className='feedback bad';f.innerHTML='<b>Try again.</b> '+DATA.questions[i].hint+' Listen again, think, change your answer, and check again.'}
+ updateProgress();
+}
+function updateProgress(){let n=DATA.questions.filter((x,i)=>selected(i)===x.ans).length;document.getElementById('bar').style.width=(n/5*100)+'%';document.getElementById('score').textContent='Your score: '+n+'/5'}
+function checkAll(){
+ DATA.questions.forEach((x,i)=>checkOne(i));
+ let n=DATA.questions.filter((x,i)=>selected(i)===x.ans).length;
+ document.getElementById('score').textContent='Your score: '+n+'/5 ('+(n*20)+'%)';
+ if(n===5 || attempts.every(a=>a>0)){completed=true;showReview()}
+}
+function showReview(){
+ let r=document.getElementById('review'), b=document.getElementById('reviewBody'); r.style.display='block';
+ b.innerHTML=DATA.questions.map((x,i)=>`<p><b>${i+1}.</b> ${x.opts[x.ans]} — ${x.exp}</p>`).join('');
+}
+function showTranscript(){
+ if(!completed) return;
+ let t=DATA.script.replace(/^(Hoa|Minh):/gm,'<span class="speaker">$1:</span>');
+ focusWords.forEach(w=>{let re=new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');t=t.replace(re,m=>'<mark>'+m+'</mark>')});
+ document.getElementById('transcriptBody').innerHTML=t.replace(/\n/g,'<br>');
+ document.getElementById('transcript').style.display='block';
+}
+function tryAgain(){
+ speechSynthesis.cancel(); attempts=Array(5).fill(0);completed=false;render();
+ document.getElementById('review').style.display='none';document.getElementById('transcript').style.display='none';
+ document.getElementById('score').textContent='Your score: 0/5';document.getElementById('bar').style.width='0';
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const WEB_APP_URL='https://script.google.com/macros/s/AKfycbzq2Uf4gfOGEUiLnG5t0_EbWaummLaz5_48aGIWVkUiUgTmNSxTS9EuCP_HZf0PpFbP/exec';
+function submitResult(){
+ const st=document.getElementById('submitStatus'), btn=document.getElementById('submitBtn');
+ const studentId=document.getElementById('studentId').value.trim();
+ const fullName=document.getElementById('fullName').value.trim();
+ const className=document.getElementById('className').value.trim();
+ if(!studentId||!fullName||!className){st.className='bad';st.textContent='Please enter Student ID, Full Name and Class.';document.getElementById('studentInfo').scrollIntoView({behavior:'smooth'});return;}
+ const a=DATA.questions.map((x,i)=>selected(i));
+ if(a.some(v=>v===null)){st.className='bad';st.textContent='Please answer all five questions before submitting.';return;}
+ const score=DATA.questions.filter((x,i)=>a[i]===x.ans).length;
+ const p={studentId,fullName,className,q1:DATA.questions[0].opts[a[0]],q2:DATA.questions[1].opts[a[1]],q3:DATA.questions[2].opts[a[2]],q4:DATA.questions[3].opts[a[3]],q5:DATA.questions[4].opts[a[4]],score,percentage:score*20};
+ btn.disabled=true;st.style.display='block';st.className='';st.textContent='Submitting...';
+ fetch(WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
+ .then(()=>{st.className='ok';st.textContent='Your result has been submitted successfully.';btn.textContent='Result Submitted';})
+ .catch(()=>{st.className='bad';st.textContent='Submission failed. Please check your connection and try again.';btn.disabled=false;});
+}
+
+function voices(){
+ const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+ const male=vs.find(v=>/male|david|mark|george|daniel/i.test(v.name))||vs[0];
+ const female=vs.find(v=>/female|zira|samantha|victoria|karen|susan/i.test(v.name))||vs[1]||vs[0];
+ return {male,female};
+}
+function playAudio(){
+ speechSynthesis.cancel(); const v=voices(); currentUtterances=[];
+ DATA.script.split('\n').forEach(line=>{
+  let parts=line.split(': '), who=parts[0], txt=parts.slice(1).join(': ');
+  let u=new SpeechSynthesisUtterance(txt);u.lang='en-US';u.rate=.82;u.pitch=who==='Hoa'?1.08:.94;u.voice=who==='Hoa'?v.female:v.male;
+  currentUtterances.push(u);speechSynthesis.speak(u);
+ });
+}
+function pauseAudio(){if(speechSynthesis.speaking){speechSynthesis.paused?speechSynthesis.resume():speechSynthesis.pause()}}
+function replayAudio(){playAudio()}
+render();
+</script>
+</body></html>
